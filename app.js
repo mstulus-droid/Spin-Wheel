@@ -3,6 +3,7 @@ const ctx = canvas.getContext("2d");
 const confettiCanvas = document.getElementById("confettiCanvas");
 const confettiCtx = confettiCanvas.getContext("2d");
 const wheelPointer = document.getElementById("wheelPointer");
+const spinLogo = document.querySelector(".spin-logo");
 
 const spinButton = document.getElementById("spinButton");
 const loadEntriesButton = document.getElementById("loadEntriesButton");
@@ -82,6 +83,13 @@ function normalizeEntries(rawText) {
 
 function entriesToText() {
   entriesInput.value = state.entries.join("\n");
+}
+
+function rotateSpinLogo(rotationDeg) {
+  if (!spinLogo) {
+    return;
+  }
+  spinLogo.style.transform = `rotate(${rotationDeg}deg)`;
 }
 
 function updateStats() {
@@ -253,6 +261,7 @@ function loadEntries() {
   state.currentRotationDeg = 0;
   state.lastWinnerIndex = -1;
   canvas.style.transform = "rotate(0deg)";
+  rotateSpinLogo(0);
 
   updateStats();
   buildWheelImage();
@@ -590,6 +599,7 @@ function animateSpin(targetDeg) {
 
     const next = start + diff * eased;
     canvas.style.transform = `rotate(${next}deg)`;
+    rotateSpinLogo(next);
     updatePointerTickByRotation(next);
 
     if (t < 1) {

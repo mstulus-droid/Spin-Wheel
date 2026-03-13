@@ -293,7 +293,7 @@ h1 {
   padding-left: 1.1rem;
   display: grid;
   gap: 0.35rem;
-  max-height: 170px;
+  max-height: 300px;
   overflow: auto;
 }
 
@@ -401,7 +401,7 @@ h1 {
   padding-left: 0;
   display: grid;
   gap: 0.44rem;
-  max-height: 180px;
+  max-height: 330px;
   overflow: auto;
   text-align: left;
   list-style: none;
