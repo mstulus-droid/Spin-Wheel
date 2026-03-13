@@ -18,11 +18,11 @@
         <section class="wheel-column">
           <div class="wheel-card card">
             <div class="wheel-stage">
-              <div class="wheel-stat wheel-stat-left">
+              <div id="entryStat" class="wheel-stat wheel-stat-left">
                 <span>Total</span>
                 <strong id="entryCount">0</strong>
               </div>
-              <div class="wheel-stat wheel-stat-right">
+              <div id="spinStat" class="wheel-stat wheel-stat-right">
                 <span>Putaran</span>
                 <strong id="spinCount">0</strong>
               </div>
@@ -36,7 +36,7 @@
 
               <div id="winnerModal" class="winner-modal" role="dialog" aria-modal="true" aria-labelledby="winnerModalTitle" aria-hidden="true">
                 <div class="winner-card">
-                  <p class="winner-chip">Pemenang</p>
+                  <p id="winnerModalChip" class="winner-chip">Pemenang</p>
                   <h3 id="winnerModalTitle">Selamat!</h3>
                   <p id="winnerModalName" class="winner-name">-</p>
                   <div class="winner-actions">
@@ -50,10 +50,7 @@
                 <div class="winner-card history-modal-card">
                   <h3 id="historyModalTitle">Daftar pemenang</h3>
                   <ol id="winnerHistoryModal" class="history-list-modal"></ol>
-                  <div class="manual-add-row">
-                    <input id="manualWinnerInput" type="text" placeholder="Tambah manual..." />
-                    <button id="manualWinnerAddButton" class="btn secondary" type="button">Tambah</button>
-                  </div>
+                  <button id="manualWinnerAddButton" class="history-add-plus" type="button" aria-label="Tambah pemenang manual">+</button>
                   <button id="historyModalClose" class="btn primary" type="button">Tutup</button>
                 </div>
               </div>
@@ -72,6 +69,7 @@
           <div class="wheel-actions">
             <button id="removeWinnerToggle" class="btn ghost" type="button" aria-pressed="true">Auto remove pemenang: ON</button>
             <button id="clearResultsButton" class="btn ghost" type="button">Clear hasil</button>
+            <button id="modeToggleButton" class="btn ghost" type="button">Mode: Undian</button>
           </div>
 
           <div class="result-panel" aria-live="polite">
@@ -80,7 +78,7 @@
           </div>
 
           <div class="history-panel">
-            <p>Daftar pemenang</p>
+            <p id="sideHistoryTitle">Daftar pemenang</p>
             <ol id="winnerHistory"></ol>
           </div>
 

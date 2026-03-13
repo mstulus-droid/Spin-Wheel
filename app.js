@@ -10,6 +10,7 @@ const sampleButton = document.getElementById("sampleButton");
 const shuffleButton = document.getElementById("shuffleButton");
 const removeWinnerToggle = document.getElementById("removeWinnerToggle");
 const clearResultsButton = document.getElementById("clearResultsButton");
+const modeToggleButton = document.getElementById("modeToggleButton");
 const dedupeButton = document.getElementById("dedupeButton");
 const exportButton = document.getElementById("exportButton");
 const importFileInput = document.getElementById("importFileInput");
@@ -19,16 +20,21 @@ const lastWinner = document.getElementById("lastWinner");
 const winnerHistory = document.getElementById("winnerHistory");
 const entryCount = document.getElementById("entryCount");
 const spinCount = document.getElementById("spinCount");
+const entryStat = document.getElementById("entryStat");
+const spinStat = document.getElementById("spinStat");
 const winnerModal = document.getElementById("winnerModal");
+const winnerModalChip = document.getElementById("winnerModalChip");
+const winnerModalTitle = document.getElementById("winnerModalTitle");
 const winnerModalName = document.getElementById("winnerModalName");
 const winnerModalClose = document.getElementById("winnerModalClose");
 const winnerRemoveButton = document.getElementById("winnerRemoveButton");
 const historyModal = document.getElementById("historyModal");
 const historyModalOpenButton = document.getElementById("historyModalOpenButton");
+const historyModalTitle = document.getElementById("historyModalTitle");
 const historyModalClose = document.getElementById("historyModalClose");
 const winnerHistoryModal = document.getElementById("winnerHistoryModal");
-const manualWinnerInput = document.getElementById("manualWinnerInput");
 const manualWinnerAddButton = document.getElementById("manualWinnerAddButton");
+const sideHistoryTitle = document.getElementById("sideHistoryTitle");
 
 const COLORS = [
   "#ff595e",
@@ -63,6 +69,7 @@ const state = {
   audioCtx: null,
   audioMaster: null,
   historyEntries: [],
+  mode: "undian",
 };
 
 function normalizeEntries(rawText) {
@@ -181,18 +188,18 @@ function buildWheelImage() {
     const mid = startAngle + anglePer / 2;
     drawCtx.save();
     drawCtx.rotate(mid);
-    drawCtx.translate(radius * 0.74, 0);
+    drawCtx.translate(radius * 0.94, 0);
 
     const px = Math.max(9, Math.min(30, 2100 / total));
     drawCtx.fillStyle = "#ffffff";
     drawCtx.font = `600 ${px}px \"Outfit\", sans-serif`;
-    drawCtx.textAlign = "left";
+    drawCtx.textAlign = "right";
     drawCtx.textBaseline = "middle";
 
     const maxChars = Math.max(5, Math.floor(radius / 16));
     const source = state.entries[index];
     const label = source.length > maxChars ? `${source.slice(0, maxChars - 1)}...` : source;
-    drawCtx.fillText(label, 0, 0);
+    drawCtx.fillText(label, 0, 0, radius * 0.64);
     drawCtx.restore();
   }
 
@@ -261,7 +268,7 @@ function renderWinnerHistory() {
 
   state.historyEntries.forEach((entry) => {
     const liPanel = document.createElement("li");
-    liPanel.textContent = entry.manual ? `${entry.name} (manual)` : entry.name;
+    liPanel.textContent = entry.name;
     if (entry.manual) {
       liPanel.classList.add("manual");
     }
@@ -368,8 +375,28 @@ function playWinnerSound() {
 
 function syncAutoRemoveUI() {
   removeWinnerToggle.setAttribute("aria-pressed", String(state.autoRemoveWinner));
-  removeWinnerToggle.textContent = `Auto remove pemenang: ${state.autoRemoveWinner ? "ON" : "OFF"}`;
+  const target = state.mode === "saksi" ? "saksi" : "pemenang";
+  removeWinnerToggle.textContent = `Auto remove ${target}: ${state.autoRemoveWinner ? "ON" : "OFF"}`;
   winnerRemoveButton.hidden = state.autoRemoveWinner;
+  winnerRemoveButton.textContent = state.mode === "saksi" ? "Remove saksi" : "Remove pemenang";
+}
+
+function syncModeUI() {
+  const isSaksi = state.mode === "saksi";
+  modeToggleButton.textContent = `Mode: ${isSaksi ? "Saksi" : "Undian"}`;
+  historyModalOpenButton.textContent = isSaksi ? "Daftar Saksi" : "Daftar pemenang";
+  historyModalTitle.textContent = isSaksi ? "Daftar saksi" : "Daftar pemenang";
+  sideHistoryTitle.textContent = isSaksi ? "Daftar saksi" : "Daftar pemenang";
+  manualWinnerAddButton.hidden = isSaksi;
+  entryStat.hidden = isSaksi;
+  spinStat.hidden = isSaksi;
+
+  if (!isSaksi) {
+    winnerModalChip.hidden = false;
+    winnerModalTitle.textContent = "Selamat!";
+  }
+
+  syncAutoRemoveUI();
 }
 
 function triggerPointerTick(deltaMs = 70) {
@@ -412,8 +439,15 @@ function updatePointerTickByRotation(rotationDeg) {
   }
 }
 
-function openWinnerModal(name) {
+function openWinnerModal(name, orderNumber = 1) {
   winnerModalName.textContent = name;
+  if (state.mode === "saksi") {
+    winnerModalChip.hidden = true;
+    winnerModalTitle.textContent = `Saksi ${orderNumber}`;
+  } else {
+    winnerModalChip.hidden = false;
+    winnerModalTitle.textContent = "Selamat!";
+  }
   winnerRemoveButton.hidden = state.autoRemoveWinner;
   winnerModal.classList.add("open");
   winnerModal.setAttribute("aria-hidden", "false");
@@ -586,7 +620,7 @@ function animateSpin(targetDeg) {
       state.lastWinnerIndex = -1;
     }
 
-    openWinnerModal(winner);
+    openWinnerModal(winner, state.historyEntries.length);
   }
 
   requestAnimationFrame(frame);
@@ -699,6 +733,11 @@ clearResultsButton.addEventListener("click", () => {
   closeHistoryModal();
 });
 
+modeToggleButton.addEventListener("click", () => {
+  state.mode = state.mode === "undian" ? "saksi" : "undian";
+  syncModeUI();
+});
+
 winnerModalClose.addEventListener("click", closeWinnerModal);
 winnerRemoveButton.addEventListener("click", removeLastWinnerFromEntries);
 winnerModal.addEventListener("click", (event) => {
@@ -716,21 +755,16 @@ historyModal.addEventListener("click", (event) => {
 });
 
 manualWinnerAddButton.addEventListener("click", () => {
-  const manualName = manualWinnerInput.value.trim();
+  if (state.mode === "saksi") {
+    return;
+  }
+
+  const manualName = window.prompt("Tambah pemenang manual:")?.trim();
   if (!manualName) {
     return;
   }
 
   addHistoryEntry(manualName, true);
-  manualWinnerInput.value = "";
-  manualWinnerInput.focus();
-});
-
-manualWinnerInput.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    manualWinnerAddButton.click();
-  }
 });
 
 dedupeButton.addEventListener("click", dedupeEntries);
@@ -761,6 +795,6 @@ window.addEventListener("resize", () => {
 
 setDefaultSample();
 resizeConfettiCanvas();
-syncAutoRemoveUI();
+syncModeUI();
 renderWinnerHistory();
 loadEntries();

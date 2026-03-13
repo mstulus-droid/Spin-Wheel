@@ -400,20 +400,22 @@ h1 {
   overflow: auto;
 }
 
-.manual-add-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 0.5rem;
-  margin-bottom: 0.8rem;
+.history-add-plus {
+  display: block;
+  margin: -0.35rem 0 0.85rem 1.1rem;
+  border: 0;
+  background: transparent;
+  color: #9ac5ff;
+  font-family: "Sora", sans-serif;
+  font-size: 1.25rem;
+  line-height: 1;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0.1rem 0.18rem;
 }
 
-.manual-add-row input {
-  border-radius: 10px;
-  border: 1px solid var(--line);
-  background: rgba(3, 10, 25, 0.82);
-  color: var(--text);
-  padding: 0.55rem 0.65rem;
-  font: 500 0.92rem/1.2 "Outfit", sans-serif;
+.history-add-plus:hover {
+  color: #d9ecff;
 }
 
 @media (max-width: 1080px) {
