@@ -275,7 +275,11 @@ function renderWinnerHistory() {
     winnerHistory.append(liPanel);
 
     const liModal = document.createElement("li");
-    liModal.textContent = liPanel.textContent;
+    liModal.dataset.index = String(winnerHistoryModal.children.length);
+    const nameSpan = document.createElement("span");
+    nameSpan.className = "history-item-name";
+    nameSpan.textContent = liPanel.textContent;
+    liModal.append(nameSpan);
     if (entry.manual) {
       liModal.classList.add("manual");
     }
@@ -751,6 +755,55 @@ historyModalClose.addEventListener("click", closeHistoryModal);
 historyModal.addEventListener("click", (event) => {
   if (event.target === historyModal) {
     closeHistoryModal();
+  }
+});
+
+winnerHistoryModal.addEventListener("click", (event) => {
+  const target = event.target;
+  if (!(target instanceof HTMLElement)) {
+    return;
+  }
+
+  const item = target.closest("li");
+  if (!item) {
+    return;
+  }
+
+  const index = Number.parseInt(item.dataset.index || "", 10);
+  if (!Number.isInteger(index) || index < 0 || index >= state.historyEntries.length) {
+    return;
+  }
+
+  const actionRaw = window.prompt("Ketik aksi: edit / hapus", "edit");
+  if (actionRaw === null) {
+    return;
+  }
+
+  const action = actionRaw.trim().toLowerCase();
+  if (action === "edit") {
+    const currentName = state.historyEntries[index].name;
+    const nextName = window.prompt("Edit nama:", currentName);
+    if (nextName === null) {
+      return;
+    }
+    const trimmed = nextName.trim();
+    if (!trimmed) {
+      return;
+    }
+    state.historyEntries[index].name = trimmed;
+    renderWinnerHistory();
+    return;
+  }
+
+  if (action === "delete") {
+    state.historyEntries.splice(index, 1);
+    renderWinnerHistory();
+    return;
+  }
+
+  if (action === "hapus") {
+    state.historyEntries.splice(index, 1);
+    renderWinnerHistory();
   }
 });
 
