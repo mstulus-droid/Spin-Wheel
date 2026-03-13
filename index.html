@@ -1,0 +1,113 @@
+﻿<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spin Wheel - Wheel of Names</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="bg-grid"></div>
+    <canvas id="confettiCanvas" aria-hidden="true"></canvas>
+
+    <main class="app-shell">
+      <section class="layout-grid">
+        <section class="wheel-column">
+          <div class="wheel-card card">
+            <div class="wheel-stage">
+              <div class="wheel-stat wheel-stat-left">
+                <span>Total</span>
+                <strong id="entryCount">0</strong>
+              </div>
+              <div class="wheel-stat wheel-stat-right">
+                <span>Putaran</span>
+                <strong id="spinCount">0</strong>
+              </div>
+              <div id="wheelPointer" class="pointer" aria-hidden="true"></div>
+              <canvas id="wheelCanvas" width="1024" height="1024" aria-label="Roulette wheel"></canvas>
+              <button id="spinButton" class="spin-btn" type="button">
+                <img src="./icon-Bank-WM.png" alt="Spin" class="spin-logo" />
+              </button>
+              <button id="shuffleButton" class="btn secondary wheel-corner left" type="button">Acak Urutan</button>
+              <button id="historyModalOpenButton" class="btn ghost wheel-corner right" type="button">Daftar pemenang</button>
+
+              <div id="winnerModal" class="winner-modal" role="dialog" aria-modal="true" aria-labelledby="winnerModalTitle" aria-hidden="true">
+                <div class="winner-card">
+                  <p class="winner-chip">Pemenang</p>
+                  <h3 id="winnerModalTitle">Selamat!</h3>
+                  <p id="winnerModalName" class="winner-name">-</p>
+                  <div class="winner-actions">
+                    <button id="winnerRemoveButton" class="btn ghost" type="button">Remove pemenang</button>
+                    <button id="winnerModalClose" class="btn primary" type="button">Tutup</button>
+                  </div>
+                </div>
+              </div>
+
+              <div id="historyModal" class="winner-modal" role="dialog" aria-modal="true" aria-labelledby="historyModalTitle" aria-hidden="true">
+                <div class="winner-card history-modal-card">
+                  <h3 id="historyModalTitle">Daftar pemenang</h3>
+                  <ol id="winnerHistoryModal" class="history-list-modal"></ol>
+                  <div class="manual-add-row">
+                    <input id="manualWinnerInput" type="text" placeholder="Tambah manual..." />
+                    <button id="manualWinnerAddButton" class="btn secondary" type="button">Tambah</button>
+                  </div>
+                  <button id="historyModalClose" class="btn primary" type="button">Tutup</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="side-card card">
+          <div class="title-row">
+            <div>
+              <a class="eyebrow link-eyebrow" href="https://studio.rhadzor.id/apps" target="_blank" rel="noopener noreferrer">RHADZ STUDIO</a>
+              <h1>Spin Wheel</h1>
+            </div>
+          </div>
+
+          <div class="wheel-actions">
+            <button id="removeWinnerToggle" class="btn ghost" type="button" aria-pressed="true">Auto remove pemenang: ON</button>
+            <button id="clearResultsButton" class="btn ghost" type="button">Clear hasil</button>
+          </div>
+
+          <div class="result-panel" aria-live="polite">
+            <p class="result-label">Hasil terakhir</p>
+            <p id="lastWinner" class="result-value">-</p>
+          </div>
+
+          <div class="history-panel">
+            <p>Daftar pemenang</p>
+            <ol id="winnerHistory"></ol>
+          </div>
+
+          <div class="entries-panel">
+            <div class="input-head">
+              <h2>Entries</h2>
+              <small id="capacityHint">Maksimal rekomendasi: 10.000 baris</small>
+            </div>
+            <textarea id="entriesInput" placeholder="Satu nama per baris...&#10;Contoh:&#10;Ali&#10;Beatriz&#10;Charles"></textarea>
+            <div class="control-row">
+              <button id="loadEntriesButton" class="btn primary" type="button">Muat ke wheel</button>
+              <button id="sampleButton" class="btn secondary" type="button">Isi contoh</button>
+            </div>
+            <div class="control-row">
+              <button id="dedupeButton" class="btn ghost" type="button">Hapus duplikat</button>
+              <button id="exportButton" class="btn ghost" type="button">Export TXT</button>
+            </div>
+            <div class="control-row">
+              <label class="file-btn btn ghost" for="importFileInput">Import TXT/CSV</label>
+              <input id="importFileInput" type="file" accept=".txt,.csv,text/plain" />
+              <p class="shortcut-hint">Shortcut: Ctrl/Cmd + Enter muat</p>
+            </div>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

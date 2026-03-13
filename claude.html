@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROULETTE — Spin the Fate</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: rgba(255,255,255,0.07);
+    --gold: #f5c842;
+    --gold2: #e8a820;
+    --accent: #7c3aed;
+    --accent2: #a855f7;
+    --text: #f0f0f8;
+    --muted: #6b6b8a;
+    --danger: #ef4444;
+    --success: #22c55e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Background stars */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.15) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 10%, rgba(255,255,255,0.1) 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 80%, rgba(255,255,255,0.12) 0%, transparent 100%),
+      radial-gradient(1px 1px at 10% 70%, rgba(255,255,255,0.08) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 60%, rgba(255,255,255,0.1) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Header */
+  header {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,10,15,0.8);
+    backdrop-filter: blur(20px);
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 0.1em;
+    background: linear-gradient(135deg, var(--gold), var(--gold2), #ff6b6b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header-stats {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+  }
+
+  .stat-pill {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 6px 16px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .stat-pill span { color: var(--gold); font-weight: 600; }
+
+  /* Main layout */
+  .main {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 0;
+    min-height: calc(100vh - 73px);
+  }
+
+  /* Wheel area */
+  .wheel-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    position: relative;
+    gap: 32px;
+  }
+
+  /* Glow behind wheel */
+  .wheel-glow {
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(124,58,237,0.15) 0%, transparent 70%);
+    pointer-events: none;
+    animation: pulse-glow 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { transform: scale(1); opacity: 0.7; }
+    50% { transform: scale(1.1); opacity: 1; }
+  }
+
+  .wheel-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Pointer */
+  .pointer {
+    position: absolute;
+    right: -18px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 20;
+    filter: drop-shadow(0 0 8px var(--gold));
+  }
+
+  .pointer svg { width: 36px; height: 36px; }
+
+  canvas#wheel {
+    border-radius: 50%;
+    box-shadow: 
+      0 0 0 4px rgba(245,200,66,0.3),
+      0 0 0 8px rgba(245,200,66,0.1),
+      0 20px 60px rgba(0,0,0,0.8),
+      0 0 80px rgba(124,58,237,0.2);
+    cursor: pointer;
+    transition: box-shadow 0.3s;
+  }
+
+  canvas#wheel:hover {
+    box-shadow: 
+      0 0 0 4px rgba(245,200,66,0.5),
+      0 0 0 8px rgba(245,200,66,0.2),
+      0 20px 60px rgba(0,0,0,0.8),
+      0 0 100px rgba(124,58,237,0.35);
+  }
+
+  /* Spin button */
+  .spin-btn {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 0.15em;
+    padding: 16px 60px;
+    background: linear-gradient(135deg, var(--gold), var(--gold2));
+    color: #0a0a0f;
+    border: none;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 24px rgba(245,200,66,0.4);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .spin-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .spin-btn:hover::before { opacity: 1; }
+  .spin-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(245,200,66,0.5); }
+  .spin-btn:active { transform: translateY(0); }
+  .spin-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* Winner modal */
+  .winner-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(8px);
+    animation: fadeIn 0.3s ease;
+  }
+
+  .winner-overlay.show { display: flex; }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .winner-card {
+    background: var(--surface);
+    border: 1px solid rgba(245,200,66,0.3);
+    border-radius: 24px;
+    padding: 48px;
+    text-align: center;
+    max-width: 440px;
+    width: 90%;
+    animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .winner-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), var(--accent2), var(--gold));
+  }
+
+  @keyframes popIn {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .confetti-emoji { font-size: 3rem; margin-bottom: 16px; animation: bounce 0.6s ease infinite alternate; }
+  @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+
+  .winner-label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+
+  .winner-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3.5rem;
+    letter-spacing: 0.05em;
+    line-height: 1;
+    margin-bottom: 32px;
+    word-break: break-word;
+  }
+
+  .winner-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .btn-remove {
+    flex: 1;
+    padding: 12px;
+    background: rgba(239,68,68,0.15);
+    border: 1px solid rgba(239,68,68,0.3);
+    color: #fca5a5;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .btn-remove:hover { background: rgba(239,68,68,0.25); border-color: rgba(239,68,68,0.5); }
+
+  .btn-continue {
+    flex: 1;
+    padding: 12px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    color: white;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .btn-continue:hover { opacity: 0.9; transform: translateY(-1px); }
+
+  /* Panel */
+  .panel {
+    border-left: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 73px);
+    position: sticky;
+    top: 73px;
+  }
+
+  .panel-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab {
+    flex: 1;
+    padding: 16px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    letter-spacing: 0.05em;
+  }
+
+  .tab.active { color: var(--text); }
+  .tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 20%;
+    right: 20%;
+    height: 2px;
+    background: var(--gold);
+    border-radius: 2px;
+  }
+
+  .tab-content { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+  .tab-content.active { display: flex; }
+
+  /* Entries tab */
+  .entries-header {
+    padding: 16px 20px 12px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .search-box {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 14px;
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-box::placeholder { color: var(--muted); }
+  .search-box:focus { border-color: rgba(124,58,237,0.5); }
+
+  .btn-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    transition: all 0.2s;
+    font-size: 1rem;
+  }
+  .btn-icon:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
+
+  .bulk-area {
+    padding: 0 20px 12px;
+  }
+
+  .bulk-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.82rem;
+    outline: none;
+    resize: none;
+    height: 72px;
+    transition: border-color 0.2s;
+    display: none;
+  }
+
+  .bulk-input.show { display: block; }
+  .bulk-input:focus { border-color: rgba(124,58,237,0.5); }
+  .bulk-input::placeholder { color: var(--muted); }
+
+  .bulk-footer {
+    display: none;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 8px 0 0;
+  }
+  .bulk-footer.show { display: flex; }
+
+  .btn-small {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+  }
+
+  .btn-small.cancel { background: var(--surface); border: 1px solid var(--border); color: var(--muted); }
+  .btn-small.cancel:hover { color: var(--text); }
+  .btn-small.add { background: var(--accent); color: white; }
+  .btn-small.add:hover { background: var(--accent2); }
+
+  /* Entry list */
+  .entry-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .entry-list::-webkit-scrollbar { width: 4px; }
+  .entry-list::-webkit-scrollbar-track { background: transparent; }
+  .entry-list::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 4px; }
+
+  .entry-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--surface2);
+    border: 1px solid transparent;
+    transition: all 0.15s;
+    group: true;
+    animation: slideIn 0.2s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(10px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .entry-item:hover { border-color: var(--border); background: rgba(255,255,255,0.04); }
+
+  .entry-color {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .entry-name {
+    flex: 1;
+    font-size: 0.88rem;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .entry-del {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    opacity: 0;
+    transition: all 0.15s;
+  }
+
+  .entry-item:hover .entry-del { opacity: 1; }
+  .entry-del:hover { color: var(--danger); background: rgba(239,68,68,0.1); }
+
+  /* Add entry row */
+  .add-row {
+    display: flex;
+    gap: 8px;
+    padding: 0 20px 16px;
+  }
+
+  .add-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .add-input:focus { border-color: rgba(124,58,237,0.5); }
+  .add-input::placeholder { color: var(--muted); }
+
+  .add-btn {
+    width: 38px;
+    height: 38px;
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .add-btn:hover { background: var(--accent2); transform: scale(1.05); }
+
+  /* Results tab */
+  .results-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .results-list::-webkit-scrollbar { width: 4px; }
+  .results-list::-webkit-scrollbar-track { background: transparent; }
+  .results-list::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 4px; }
+
+  .result-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: var(--surface2);
+    border: 1px solid transparent;
+    animation: slideIn 0.2s ease;
+  }
+
+  .result-rank {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    color: var(--muted);
+    width: 24px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .result-rank.gold { color: var(--gold); }
+
+  .result-name { flex: 1; font-size: 0.88rem; }
+  .result-time { font-size: 0.75rem; color: var(--muted); }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    gap: 12px;
+    color: var(--muted);
+    font-size: 0.85rem;
+    padding: 40px;
+    text-align: center;
+  }
+
+  .empty-icon { font-size: 2.5rem; opacity: 0.5; }
+
+  /* Panel footer */
+  .panel-footer {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-danger-sm {
+    padding: 8px 14px;
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.2);
+    color: #fca5a5;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.78rem;
+    transition: all 0.15s;
+  }
+  .btn-danger-sm:hover { background: rgba(239,68,68,0.2); }
+
+  .btn-primary-sm {
+    flex: 1;
+    padding: 8px 14px;
+    background: rgba(124,58,237,0.15);
+    border: 1px solid rgba(124,58,237,0.3);
+    color: var(--accent2);
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+  .btn-primary-sm:hover { background: rgba(124,58,237,0.25); }
+
+  /* Tooltip */
+  .tooltip { position: relative; }
+  .tooltip::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a2e;
+    color: var(--text);
+    font-size: 0.72rem;
+    padding: 4px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+    border: 1px solid var(--border);
+  }
+  .tooltip:hover::after { opacity: 1; }
+
+  /* Count badge */
+  .count-badge {
+    background: var(--accent);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 100px;
+    margin-left: 4px;
+  }
+
+  /* Confetti canvas */
+  #confetti-canvas {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 999;
+    display: none;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .main { grid-template-columns: 1fr; }
+    .panel {
+      height: auto;
+      position: static;
+      border-left: none;
+      border-top: 1px solid var(--border);
+    }
+    .wheel-area { padding: 24px 16px; }
+  }
+
+  .filter-row {
+    padding: 0 20px 10px;
+    display: flex;
+    gap: 6px;
+  }
+
+  .filter-btn {
+    padding: 5px 12px;
+    border-radius: 100px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--muted);
+    transition: all 0.15s;
+    font-family: 'Outfit', sans-serif;
+  }
+  .filter-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+  .filter-btn:hover:not(.active) { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+  .no-entries {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.82rem;
+    padding: 32px 0;
+    opacity: 0.7;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🎰 ROULETTE</div>
+  <div class="header-stats">
+    <div class="stat-pill">Entries <span id="total-count">0</span></div>
+    <div class="stat-pill">Spins <span id="spin-count">0</span></div>
+  </div>
+</header>
+
+<div class="main">
+  <!-- Wheel area -->
+  <div class="wheel-area">
+    <div class="wheel-glow"></div>
+    <div class="wheel-wrapper">
+      <canvas id="wheel" width="460" height="460"></canvas>
+      <div class="pointer">
+        <svg viewBox="0 0 36 36" fill="none">
+          <polygon points="36,18 8,6 8,30" fill="#f5c842" stroke="#0a0a0f" stroke-width="1.5"/>
+        </svg>
+      </div>
+    </div>
+    <button class="spin-btn" id="spin-btn" onclick="spinWheel()">SPIN</button>
+  </div>
+
+  <!-- Panel -->
+  <div class="panel">
+    <div class="panel-tabs">
+      <button class="tab active" onclick="switchTab('entries', this)">
+        Entries <span class="count-badge" id="entries-badge">0</span>
+      </button>
+      <button class="tab" onclick="switchTab('results', this)">
+        Results <span class="count-badge" id="results-badge">0</span>
+      </button>
+    </div>
+
+    <!-- Entries Tab -->
+    <div class="tab-content active" id="tab-entries">
+      <div class="entries-header">
+        <input class="search-box" id="search-box" placeholder="🔍  Search entries..." oninput="filterEntries(this.value)">
+        <button class="btn-icon tooltip" data-tip="Shuffle" onclick="shuffleEntries()">⇌</button>
+        <button class="btn-icon tooltip" data-tip="Sort A-Z" onclick="sortEntries()">↕</button>
+        <button class="btn-icon tooltip" data-tip="Bulk add" onclick="toggleBulk()">≡</button>
+      </div>
+
+      <div class="bulk-area">
+        <textarea class="bulk-input" id="bulk-input" placeholder="Paste names here, one per line...&#10;Ali&#10;Budi&#10;Citra&#10;..."></textarea>
+        <div class="bulk-footer" id="bulk-footer">
+          <button class="btn-small cancel" onclick="toggleBulk()">Cancel</button>
+          <button class="btn-small add" onclick="addBulk()">Add All</button>
+        </div>
+      </div>
+
+      <div class="filter-row">
+        <button class="filter-btn active" id="filter-all" onclick="setFilter('all', this)">All</button>
+        <button class="filter-btn" id="filter-active" onclick="setFilter('active', this)">Active</button>
+        <button class="filter-btn" id="filter-won" onclick="setFilter('won', this)">Won</button>
+      </div>
+
+      <div class="entry-list" id="entry-list"></div>
+
+      <div class="add-row">
+        <input class="add-input" id="add-input" placeholder="Add name and press Enter..." onkeydown="if(event.key==='Enter') addEntry()">
+        <button class="add-btn" onclick="addEntry()">+</button>
+      </div>
+
+      <div class="panel-footer">
+        <button class="btn-danger-sm" onclick="clearAll()">Clear All</button>
+        <button class="btn-primary-sm" onclick="resetWon()">Reset Won</button>
+        <button class="btn-primary-sm" onclick="exportList()">Export</button>
+      </div>
+    </div>
+
+    <!-- Results Tab -->
+    <div class="tab-content" id="tab-results">
+      <div class="results-list" id="results-list">
+        <div class="empty-state">
+          <div class="empty-icon">🎲</div>
+          <div>No spins yet.<br>Spin the wheel to get started!</div>
+        </div>
+      </div>
+      <div class="panel-footer">
+        <button class="btn-danger-sm" onclick="clearResults()">Clear History</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Winner overlay -->
+<div class="winner-overlay" id="winner-overlay">
+  <div class="winner-card">
+    <div class="confetti-emoji">🎉</div>
+    <div class="winner-label">Winner!</div>
+    <div class="winner-name" id="winner-name">—</div>
+    <div class="winner-actions">
+      <button class="btn-remove" onclick="removeWinner()">Remove & Spin Again</button>
+      <button class="btn-continue" onclick="closeWinner()">Continue</button>
+    </div>
+  </div>
+</div>
+
+<canvas id="confetti-canvas"></canvas>
+
+<script>
+// =====================
+// STATE
+// =====================
+let entries = [];
+let spinning = false;
+let currentAngle = 0;
+let animFrame = null;
+let currentWinner = null;
+let spinCount = 0;
+let results = [];
+let filter = 'all';
+let searchQuery = '';
+
+const COLORS = [
+  '#7c3aed','#dc2626','#2563eb','#16a34a','#d97706',
+  '#db2777','#0891b2','#65a30d','#9333ea','#ea580c',
+  '#0284c7','#15803d','#b45309','#be185d','#1d4ed8',
+  '#7e22ce','#991b1b','#1e40af','#14532d','#92400e',
+];
+
+// Default entries
+['Alice','Bob','Charlie','Diana','Eric','Fatima','Gabriel','Hanna'].forEach(n => addEntryData(n));
+
+// =====================
+// ENTRY MANAGEMENT
+// =====================
+function addEntryData(name) {
+  const trimmed = name.trim();
+  if (!trimmed) return;
+  entries.push({
+    id: Date.now() + Math.random(),
+    name: trimmed,
+    color: COLORS[entries.length % COLORS.length],
+    won: false
+  });
+}
+
+function addEntry() {
+  const input = document.getElementById('add-input');
+  const val = input.value.trim();
+  if (!val) return;
+  addEntryData(val);
+  input.value = '';
+  renderAll();
+}
+
+function addBulk() {
+  const bulk = document.getElementById('bulk-input').value;
+  const names = bulk.split('\n').map(s => s.trim()).filter(Boolean);
+  names.forEach(n => addEntryData(n));
+  document.getElementById('bulk-input').value = '';
+  toggleBulk();
+  renderAll();
+}
+
+function deleteEntry(id) {
+  entries = entries.filter(e => e.id !== id);
+  renderAll();
+}
+
+function shuffleEntries() {
+  for (let i = entries.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [entries[i], entries[j]] = [entries[j], entries[i]];
+  }
+  renderAll();
+}
+
+function sortEntries() {
+  entries.sort((a, b) => a.name.localeCompare(b.name));
+  renderAll();
+}
+
+function clearAll() {
+  if (!confirm('Clear all entries?')) return;
+  entries = [];
+  renderAll();
+}
+
+function resetWon() {
+  entries.forEach(e => e.won = false);
+  renderAll();
+}
+
+function exportList() {
+  const text = entries.map(e => e.name).join('\n');
+  const blob = new Blob([text], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'roulette-entries.txt';
+  a.click();
+}
+
+function clearResults() {
+  results = [];
+  spinCount = 0;
+  renderAll();
+}
+
+// =====================
+// FILTER / SEARCH
+// =====================
+function setFilter(f, btn) {
+  filter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderEntryList();
+}
+
+function filterEntries(q) {
+  searchQuery = q.toLowerCase();
+  renderEntryList();
+}
+
+function getFilteredEntries() {
+  return entries.filter(e => {
+    const matchSearch = e.name.toLowerCase().includes(searchQuery);
+    const matchFilter = filter === 'all' || (filter === 'active' && !e.won) || (filter === 'won' && e.won);
+    return matchSearch && matchFilter;
+  });
+}
+
+function getActiveEntries() {
+  return entries.filter(e => !e.won);
+}
+
+// =====================
+// RENDER
+// =====================
+function renderAll() {
+  renderEntryList();
+  renderResultsList();
+  drawWheel();
+  updateStats();
+}
+
+function renderEntryList() {
+  const list = document.getElementById('entry-list');
+  const filtered = getFilteredEntries();
+  
+  if (entries.length === 0) {
+    list.innerHTML = '<div class="no-entries">No entries yet.<br>Add names to get started!</div>';
+    return;
+  }
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="no-entries">No entries match your search.</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(e => `
+    <div class="entry-item" style="${e.won ? 'opacity:0.45;' : ''}">
+      <div class="entry-color" style="background:${e.color}"></div>
+      <div class="entry-name">${escHtml(e.name)}${e.won ? ' ✓' : ''}</div>
+      <button class="entry-del" onclick="deleteEntry(${e.id})">✕</button>
+    </div>
+  `).join('');
+
+  document.getElementById('entries-badge').textContent = entries.length;
+}
+
+function renderResultsList() {
+  const list = document.getElementById('results-list');
+  document.getElementById('results-badge').textContent = results.length;
+
+  if (results.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">🎲</div><div>No spins yet.<br>Spin the wheel to get started!</div></div>`;
+    return;
+  }
+
+  list.innerHTML = results.map((r, i) => `
+    <div class="result-item">
+      <div class="result-rank ${i === 0 ? 'gold' : ''}">#${i + 1}</div>
+      <div class="entry-color" style="background:${r.color};width:8px;height:8px;border-radius:50%;flex-shrink:0"></div>
+      <div class="result-name">${escHtml(r.name)}</div>
+      <div class="result-time">${r.time}</div>
+    </div>
+  `).join('');
+}
+
+function updateStats() {
+  document.getElementById('total-count').textContent = entries.length;
+  document.getElementById('spin-count').textContent = spinCount;
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// =====================
+// WHEEL DRAWING
+// =====================
+function drawWheel(highlightIndex = -1) {
+  const canvas = document.getElementById('wheel');
+  const ctx = canvas.getContext('2d');
+  const cx = canvas.width / 2;
+  const cy = canvas.height / 2;
+  const r = cx - 4;
+  const active = getActiveEntries();
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (active.length === 0) {
+    ctx.fillStyle = '#1a1a26';
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#6b6b8a';
+    ctx.font = 'bold 18px Outfit';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Add entries to spin!', cx, cy);
+    return;
+  }
+
+  const slice = (Math.PI * 2) / active.length;
+
+  // Draw slices
+  active.forEach((entry, i) => {
+    const start = currentAngle + i * slice;
+    const end = start + slice;
+    const mid = start + slice / 2;
+
+    // Slice
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, start, end);
+    ctx.closePath();
+    ctx.fillStyle = entry.color;
+    ctx.fill();
+
+    // Highlight
+    if (i === highlightIndex) {
+      ctx.fillStyle = 'rgba(255,255,255,0.15)';
+      ctx.fill();
+    }
+
+    // Border
+    ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Text
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(mid);
+
+    // Text bg for readability
+    const fontSize = active.length > 40 ? 9 : active.length > 20 ? 11 : active.length > 10 ? 13 : 15;
+    ctx.font = `600 ${fontSize}px Outfit`;
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = 'rgba(0,0,0,0.7)';
+    ctx.shadowBlur = 4;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+
+    const maxLen = active.length > 30 ? 8 : active.length > 15 ? 12 : 18;
+    let label = entry.name;
+    if (label.length > maxLen) label = label.slice(0, maxLen - 1) + '…';
+    ctx.fillText(label, r - 10, 0);
+    ctx.restore();
+  });
+
+  // Outer ring
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(245,200,66,0.6)';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // Center cap
+  const capGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 26);
+  capGrad.addColorStop(0, '#2a2a3e');
+  capGrad.addColorStop(1, '#12121a');
+  ctx.beginPath();
+  ctx.arc(cx, cy, 26, 0, Math.PI * 2);
+  ctx.fillStyle = capGrad;
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(245,200,66,0.5)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Center logo
+  ctx.fillStyle = '#f5c842';
+  ctx.font = 'bold 14px Outfit';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.shadowBlur = 0;
+  ctx.fillText('🎰', cx, cy);
+}
+
+// =====================
+// SPIN
+// =====================
+function spinWheel() {
+  const active = getActiveEntries();
+  if (spinning || active.length === 0) return;
+  spinning = true;
+  document.getElementById('spin-btn').disabled = true;
+
+  const totalSpins = (Math.random() * 5 + 8) * Math.PI * 2;
+  const duration = 4000 + Math.random() * 2000;
+  const start = performance.now();
+  const startAngle = currentAngle;
+
+  function ease(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
+  function animate(now) {
+    const elapsed = now - start;
+    const t = Math.min(elapsed / duration, 1);
+    const eased = ease(t);
+
+    currentAngle = startAngle + totalSpins * eased;
+    drawWheel();
+
+    if (t < 1) {
+      animFrame = requestAnimationFrame(animate);
+    } else {
+      spinning = false;
+      document.getElementById('spin-btn').disabled = false;
+      findWinner(active);
+    }
+  }
+
+  requestAnimationFrame(animate);
+}
+
+function findWinner(active) {
+  const slice = (Math.PI * 2) / active.length;
+  // Pointer is at angle = 0 (right side), but we offset by -PI/2 for top
+  // Pointer is at the right side (3 o'clock), so winner is at angle 0
+  const normalizedAngle = ((currentAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+  const pointerAngle = 0; // right side
+  const adjustedAngle = (pointerAngle - normalizedAngle + Math.PI * 2) % (Math.PI * 2);
+  const winnerIndex = Math.floor(adjustedAngle / slice) % active.length;
+
+  currentWinner = active[winnerIndex];
+  spinCount++;
+
+  results.unshift({
+    name: currentWinner.name,
+    color: currentWinner.color,
+    time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  });
+
+  renderAll();
+  showWinner(currentWinner);
+  shootConfetti();
+}
+
+// =====================
+// WINNER DISPLAY
+// =====================
+function showWinner(entry) {
+  document.getElementById('winner-name').textContent = entry.name;
+  document.getElementById('winner-name').style.color = entry.color;
+  document.getElementById('winner-overlay').classList.add('show');
+}
+
+function closeWinner() {
+  document.getElementById('winner-overlay').classList.remove('show');
+  stopConfetti();
+}
+
+function removeWinner() {
+  if (currentWinner) {
+    const entry = entries.find(e => e.id === currentWinner.id);
+    if (entry) entry.won = true;
+    renderAll();
+  }
+  closeWinner();
+}
+
+// =====================
+// CONFETTI
+// =====================
+let confettiParticles = [];
+let confettiAnim = null;
+
+function shootConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  canvas.style.display = 'block';
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  confettiParticles = [];
+
+  for (let i = 0; i < 150; i++) {
+    confettiParticles.push({
+      x: Math.random() * canvas.width,
+      y: -20,
+      vx: (Math.random() - 0.5) * 6,
+      vy: Math.random() * 4 + 2,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      size: Math.random() * 8 + 4,
+      rotation: Math.random() * 360,
+      rotationSpeed: (Math.random() - 0.5) * 10,
+      alpha: 1,
+    });
+  }
+
+  function animConfetti() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let alive = false;
+    confettiParticles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.12;
+      p.rotation += p.rotationSpeed;
+      if (p.y > canvas.height * 0.7) p.alpha -= 0.02;
+      if (p.alpha > 0) {
+        alive = true;
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.alpha);
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation * Math.PI / 180);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.5);
+        ctx.restore();
+      }
+    });
+    if (alive) confettiAnim = requestAnimationFrame(animConfetti);
+    else stopConfetti();
+  }
+
+  confettiAnim = requestAnimationFrame(animConfetti);
+}
+
+function stopConfetti() {
+  if (confettiAnim) cancelAnimationFrame(confettiAnim);
+  const canvas = document.getElementById('confetti-canvas');
+  canvas.style.display = 'none';
+}
+
+// =====================
+// TABS
+// =====================
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+}
+
+// =====================
+// BULK
+// =====================
+function toggleBulk() {
+  const input = document.getElementById('bulk-input');
+  const footer = document.getElementById('bulk-footer');
+  const show = !input.classList.contains('show');
+  input.classList.toggle('show', show);
+  footer.classList.toggle('show', show);
+  if (show) input.focus();
+  else { input.value = ''; }
+}
+
+// =====================
+// INIT
+// =====================
+renderAll();
+document.getElementById('add-input').focus();
+
+// Click on canvas to spin
+document.getElementById('wheel').addEventListener('click', () => {
+  if (!spinning) spinWheel();
+});
+
+// Keyboard shortcut
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') spinWheel();
+  if (e.key === 'Escape') closeWinner();
+});
+</script>
+</body>
+</html>
